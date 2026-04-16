@@ -1,0 +1,44 @@
+package db03;
+/*
+ 	-- 아이디 문자(20) 필수입력 중복방지
+	-- 이름 문자(30) 필수입력
+	-- 이메일 문자(320) 중복방지
+ */
+public class TMEMDTO {
+	private String userid;
+	private String username;
+	private String email;
+	//Constructor
+	public TMEMDTO() {}
+	public TMEMDTO(String userid, String username, String email) {
+		this.userid = userid;
+		this.username = username;
+		this.email = email;
+	}
+	
+	//getter/setter
+	public String getUserid() {
+		return userid;
+	}
+	public void setUserid(String userid) {
+		this.userid = userid;
+	}
+	public String getUsername() {
+		return username;
+	}
+	public void setUsername(String username) {
+		this.username = username;
+	}
+	public String getEmail() {
+		return email;
+	}
+	public void setEmail(String email) {
+		this.email = email;
+	}
+	//Override
+	@Override
+	public String toString() {
+		return "TMEM [userid=" + userid + ", username=" + username + ", email=" + email + "]";
+	}
+
+}
