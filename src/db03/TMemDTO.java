@@ -4,13 +4,13 @@ package db03;
 	-- 이름 문자(30) 필수입력
 	-- 이메일 문자(320) 중복방지
  */
-public class TMEMDTO {
+public class TMemDTO {
 	private String userid;
 	private String username;
 	private String email;
 	//Constructor
-	public TMEMDTO() {}
-	public TMEMDTO(String userid, String username, String email) {
+	public TMemDTO() {}
+	public TMemDTO(String userid, String username, String email) {
 		this.userid = userid;
 		this.username = username;
 		this.email = email;
