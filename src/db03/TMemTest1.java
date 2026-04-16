@@ -75,6 +75,7 @@ public class TMemTest1 {
 		String sql = "";
 		sql += "UPDATE TMEM SET USERNAME = ? WHERE USERID = ?";
 		PreparedStatement pstmt = conn.prepareStatement(sql);
+		ResultSet rs = pstmt.executeQuery();
 		
 		pstmt.setString(1, tmem.getUsername());
 		pstmt.setString(2, tmem.getUserid());
