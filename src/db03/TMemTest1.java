@@ -1,73 +1,101 @@
 package db03;
 
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Scanner;
 
-public class TMEMTest {
-	// db 연결 문자열
+public class TMemTest1 {
 	private static String driver = "oracle.jdbc.OracleDriver";
 	private static String url = "jdbc:oracle:thin:@localhost:1521:xe";
 	private static String dbuid = "sky";
 	private static String dbpwd = "1234";
-	
+
 	static Scanner sc = new Scanner(System.in);
+	static TMemDTO tmem = null;
 	
 	public static void main(String[] args) throws ClassNotFoundException, SQLException {
-		//CRUD 예제, Create, Read, Update, Delete
-		TMemDTO tmem = null;
 		
 		do {
-			// 화면 출력 반복
-			System.out.println("=============================");
-			System.out.println("			회원정보		 ");
-			System.out.println("=============================");
+			//화면 출력 반복
+			System.out.println("========================================");
+			System.out.println("				회원정보				");
+			System.out.println("========================================");
 			System.out.println("1. 회원 목록");
 			System.out.println("2. 회원 조회");
 			System.out.println("3. 회원 추가");
 			System.out.println("4. 회원 수정");
 			System.out.println("5. 회원 삭제");
-			System.out.println("Q. 종료");
+			System.out.println("6. 종료");
 			
 			System.out.println("선택:");
 			String choice = sc.nextLine();
 			
 			switch(choice) {
-			case "1": //회원목록
+			case "1": //회원 목록
 				ArrayList<TMemDTO> memList = getTMemList();
 				displayList(memList);
-				break;
-			case "2": //회원조회 (id) -- tmem
-				System.out.println("조회할 아이디를 입력: ");
+				break; 
+			case "2": //회원 조회 id
+				System.out.println("조회할 아이디: ");
 				String uid = sc.nextLine();
 				tmem = getTMem(uid);
-//				System.out.println(tmem.toString()); 
 				display(tmem);
 				break;
 			case "3": 
-				//회원추가 -- tmem
-				tmem = inputData(); // inputdata() 함수 호출 
-				int aftcnt = addTMem(tmem); // 입력할 데이터 3개를 받아서 추가. Create // aftcnt -> affected count : 총 몇개
+				//회원 추가
+				tmem = inputData();
+				int aftcnt = addTMem(tmem);
 				System.out.println(aftcnt + "건 저장되었습니다.");
 				break;
-			case "4": //회원수정 (username) 	
+			case "4": //회원 수정 uname
+				tmem = Updatedata();
+				uptTMem(tmem);
+				displayudp(tmem);
 				break;
-			case "5": //회원삭제
-				
+			case "5": //회원 삭제
 				break;
-			case "q", "Q": 
-				//종료;
+			case "q", "Q": //종료
 				System.out.println("프로그램 종료");
-				System.exit(0);
+				System.exit(0);;
 				break;
 			}
-			
 		} while (true); // 무한 루프
 		
 	}
 
-	// 자료가 많으면 페이징 기법
-	// 1. 전체 목록 조회 - db 에서
+	private static TMemDTO uptTMem(TMemDTO tmem) throws ClassNotFoundException, SQLException {
+		Class.forName(driver);
+		Connection conn = DriverManager.getConnection(url, dbuid, dbpwd);
+		
+		//tmem 에 있는 3개의 값을 추가
+		String sql = "";
+		sql += "UPDATE TMEM SET USERNAME = ? WHERE USERID = ?";
+		PreparedStatement pstmt = conn.prepareStatement(sql);
+		
+		pstmt.setString(1, tmem.getUsername());
+		pstmt.setString(2, tmem.getUserid());
+		
+		pstmt.close();
+		conn.close();
+		
+		return tmem;
+	}
+
+	private static TMemDTO Updatedata() {
+		System.out.println("아이디: ");
+		String userid = sc.nextLine();
+		System.out.println("수정할 이름: ");
+		String username = sc.nextLine();
+		System.out.println("이메일: ");
+		String email = sc.nextLine();
+		
+		TMemDTO tmem = new TMemDTO(userid, username, email);
+		return tmem;
+	}
 	private static ArrayList<TMemDTO> getTMemList() 
 			throws ClassNotFoundException, SQLException {
 		Class.forName(driver);
@@ -77,15 +105,15 @@ public class TMEMTest {
 		PreparedStatement pstmt = conn.prepareStatement(sql);		
 		ResultSet rs = pstmt.executeQuery();
 		
-		ArrayList<TMemDTO> memList = new ArrayList<>(); //memList 를 ArrayList로 만들기
+		ArrayList<TMemDTO> memList = new ArrayList<>();
 		
-		while (rs.next()) { 
+		while (rs.next()) {
 			String userid = rs.getString("userid");
 			String username = rs.getString("username");
 			String email = rs.getString("email");
 			
 			TMemDTO tmem = new TMemDTO(userid, username, email);
-			memList.add(tmem); // ArrayList 에 tmem 값 추가
+			memList.add(tmem);
 		}
 		
 		rs.close();
@@ -94,7 +122,7 @@ public class TMEMTest {
 		
 		return memList;
 	}
-	// 2. 입력 받은 아이디로 한줄을 db 에서 조회
+
 	private static TMemDTO getTMem(String uid) throws ClassNotFoundException, SQLException {
 		Class.forName(driver);
 		Connection conn = DriverManager.getConnection(url, dbuid, dbpwd);
@@ -103,17 +131,16 @@ public class TMEMTest {
 		PreparedStatement pstmt = conn.prepareStatement(sql);
 		pstmt.setString(1, uid);
 		
-		TMemDTO tmem = null; // 지역 변수를 공용으로 사용하려면 전역 변수로 만들고 = null 이라고 초기화해줘야 함(필수)
+		TMemDTO tmem = null;
 		
 		ResultSet rs = pstmt.executeQuery();
-		if (rs.next()) { //해당 자료가 있는 경우
+		if(rs.next()) {
 			String userid = rs.getString("userid");
 			String username = rs.getString("username");
 			String email = rs.getString("email");
 			
 			tmem = new TMemDTO(userid, username, email);
-			
-		} else { //해당 자료가 없는 경우 : primary key
+		} else {
 			
 		}
 		
@@ -121,13 +148,12 @@ public class TMEMTest {
 		conn.close();
 		
 		return tmem;
-	}	
-	// 3. DB 에 insert 한다 - 저장된 데이터를 db 에 추가
+	}
+	// INSERT
 	private static int addTMem(TMemDTO tmem) throws ClassNotFoundException, SQLException {
 		Class.forName(driver);
 		Connection conn = DriverManager.getConnection(url, dbuid, dbpwd);
 		
-		//tmem 에 있는 3개의 값을 추가
 		String sql = "";
 		sql += "INSERT INTO TMEM VALUES(?, ?, ?)";
 		PreparedStatement pstmt = conn.prepareStatement(sql);
@@ -143,8 +169,7 @@ public class TMEMTest {
 		
 		return aftcnt;
 	}
-//=========================================================================================================================
-	// 데이터를 키보드로 입력 받음
+	// 추가 데이터 키보드로 입력 받음
 	private static TMemDTO inputData() {
 		System.out.println("아이디: ");
 		String userid = sc.nextLine();
@@ -153,39 +178,39 @@ public class TMEMTest {
 		System.out.println("이메일: ");
 		String email = sc.nextLine();
 		
-		TMemDTO tmem = new TMemDTO(userid, username, email); // userid, username, email 이 3개의 값을 tmem 변수에 저장을 하고
-		return tmem; // tmem 값을 반환
+		TMemDTO tmem = new TMemDTO(userid, username, email);		
+		return tmem;
 	}
-	//TMem 한줄 출력
 	private static void display(TMemDTO tmem) {
 		if (tmem == null) {
-			System.out.println("조회한 자료가 없습니다.");
-		} else {
+			System.out.println("조회된 자료가 없습니다");
+		} else {			
 			String msg = String.format("%s %s %s", tmem.getUserid(), tmem.getUsername(), tmem.getEmail());
 			System.out.println(msg);
 		}
-		System.out.println("Press any key ....");
-		sc.nextLine();
 	}
-	// 전체 목록 출력
 	private static void displayList(ArrayList<TMemDTO> memList) {
-		// 자료가 없을 때
-		if (memList.size() == 0) {
+		if(memList.size() == 0) {
 			System.out.println("조회한 자료가 없습니다.");
 			return;
 		}
-//		String fmt = "";
 		String msg = "";
 		for (TMemDTO tmem : memList) {
 			String userid = tmem.getUserid();
 			String username = tmem.getUsername();
 			String email = tmem.getEmail();
 			msg = """
-			%s %s %s 	
-				""".formatted(userid, username, email); // Java template 문자열 : 여러줄 복잡한 문장 출력(java 8 이상)
+					%s %s %s
+					""".formatted(userid, username, email);
 			System.out.print(msg);
 		}
 		System.out.println("Press any key ....");
 		sc.nextLine();
+	}
+	private static void displayudp(TMemDTO tmem2) {
+		String fmt = "%s %s %s";
+		String msg = String.format(fmt, tmem.getUserid(), tmem.getUsername(), tmem.getEmail());
+		System.out.println("업데이트 되었습니다.");
+		System.out.println(msg);
 	}
 }
