@@ -7,7 +7,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Scanner;
-// JDBC 방식
+// JDBC CRUD 방식
 public class TMemTest1 {
 	private static String driver = "oracle.jdbc.OracleDriver";
 	private static String url = "jdbc:oracle:thin:@localhost:1521:xe";
