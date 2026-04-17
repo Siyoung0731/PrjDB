@@ -5,6 +5,7 @@ package db03;
 	-- 이메일 문자(320) 중복방지
  */
 public class TMemDTO {
+	//Field
 	private String userid;
 	private String username;
 	private String email;
@@ -16,7 +17,11 @@ public class TMemDTO {
 		this.email = email;
 	}
 	
-	//getter/setter
+	public TMemDTO(String username, String email) {
+		this.username = username;
+		this.email = email;
+	}
+	//Getter/Setter
 	public String getUserid() {
 		return userid;
 	}

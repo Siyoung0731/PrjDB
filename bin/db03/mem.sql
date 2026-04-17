@@ -26,3 +26,13 @@ INSERT INTO TMEM VALUES('cccc', 'wori', 'cccc@green.com');
 INSERT INTO TMEM VALUES('dddd', 'lena', 'dddd@green.com');
 INSERT INTO TMEM VALUES('eeee', 'rina', 'eeee@green.com');
 commit;
+
+SELECT * FROM TMEM;
+
+SELECT * FROM TMEM WHERE USERID = 'aaaa';
+
+UPDATE TMEM
+set USERNAME = 'popopopo', EMAIL = 'eeee123@green.com'
+where USERID = 'eeee';
+
+DELETE FROM TMEM WHERE USERID = 'aaaa';

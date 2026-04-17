@@ -7,7 +7,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Scanner;
-
+// JDBC 방식
 public class TMemTest1 {
 	private static String driver = "oracle.jdbc.OracleDriver";
 	private static String url = "jdbc:oracle:thin:@localhost:1521:xe";
@@ -16,6 +16,7 @@ public class TMemTest1 {
 
 	static Scanner sc = new Scanner(System.in);
 	static TMemDTO tmem = null;
+	static int aftcnt = 0;
 	
 	public static void main(String[] args) throws ClassNotFoundException, SQLException {
 		
@@ -48,15 +49,23 @@ public class TMemTest1 {
 			case "3": 
 				//회원 추가
 				tmem = inputData();
-				int aftcnt = addTMem(tmem);
+				aftcnt = addTMem(tmem);
 				System.out.println(aftcnt + "건 저장되었습니다.");
 				break;
 			case "4": //회원 수정 uname
+				System.out.println("수정할 아이디 입력: ");
+				String orgUid = sc.nextLine(); // 검색할 데이터, 변경대상 X
+				System.out.println("수정할 내용 입력: ");
 				tmem = Updatedata();
-				uptTMem(tmem);
-				displayudp(tmem);
+				aftcnt = uptTMem(orgUid, tmem);
+				System.out.println(aftcnt + "행 이(가) 업데이트되었습니다.");
 				break;
 			case "5": //회원 삭제
+				System.out.println("삭제할 아이디 입력:");
+				String orgUid1 = sc.nextLine();
+				aftcnt = dltTMem(orgUid1);
+				System.out.println(aftcnt + "건 삭제되었습니다.");
+				sc.nextLine();
 				break;
 			case "q", "Q": //종료
 				System.out.println("프로그램 종료");
@@ -66,37 +75,9 @@ public class TMemTest1 {
 		} while (true); // 무한 루프
 		
 	}
-
-	private static TMemDTO uptTMem(TMemDTO tmem) throws ClassNotFoundException, SQLException {
-		Class.forName(driver);
-		Connection conn = DriverManager.getConnection(url, dbuid, dbpwd);
-		
-		//tmem 에 있는 3개의 값을 추가
-		String sql = "";
-		sql += "UPDATE TMEM SET USERNAME = ? WHERE USERID = ?";
-		PreparedStatement pstmt = conn.prepareStatement(sql);
-		ResultSet rs = pstmt.executeQuery();
-		
-		pstmt.setString(1, tmem.getUsername());
-		pstmt.setString(2, tmem.getUserid());
-		
-		pstmt.close();
-		conn.close();
-		
-		return tmem;
-	}
-
-	private static TMemDTO Updatedata() {
-		System.out.println("아이디: ");
-		String userid = sc.nextLine();
-		System.out.println("수정할 이름: ");
-		String username = sc.nextLine();
-		System.out.println("이메일: ");
-		String email = sc.nextLine();
-		
-		TMemDTO tmem = new TMemDTO(userid, username, email);
-		return tmem;
-	}
+	// pstmt.executeUpdate() : sql문 실행 후 커밋
+	//함수 호출
+	//1. ArrayList 회원 목록
 	private static ArrayList<TMemDTO> getTMemList() 
 			throws ClassNotFoundException, SQLException {
 		Class.forName(driver);
@@ -123,7 +104,7 @@ public class TMemTest1 {
 		
 		return memList;
 	}
-
+	//2. Select 회원 조회
 	private static TMemDTO getTMem(String uid) throws ClassNotFoundException, SQLException {
 		Class.forName(driver);
 		Connection conn = DriverManager.getConnection(url, dbuid, dbpwd);
@@ -150,7 +131,7 @@ public class TMemTest1 {
 		
 		return tmem;
 	}
-	// INSERT
+	//3. INSERT 회원 추가
 	private static int addTMem(TMemDTO tmem) throws ClassNotFoundException, SQLException {
 		Class.forName(driver);
 		Connection conn = DriverManager.getConnection(url, dbuid, dbpwd);
@@ -170,7 +151,49 @@ public class TMemTest1 {
 		
 		return aftcnt;
 	}
-	// 추가 데이터 키보드로 입력 받음
+	//4. Update 회원 수정
+	private static int uptTMem(String orgUid, TMemDTO tmem) throws ClassNotFoundException, SQLException {
+		Class.forName(driver);
+		Connection conn = DriverManager.getConnection(url, dbuid, dbpwd);
+		
+		//tmem 에 있는 3개의 값을 추가
+		String sql = "UPDATE TMEM"
+				+ " set USERNAME = ?, EMAIL = ?"
+				+ " where USERID = ?";
+		PreparedStatement pstmt = conn.prepareStatement(sql);
+		
+		pstmt.setString(1, tmem.getUsername());
+		pstmt.setString(2, tmem.getEmail());
+		pstmt.setString(3, orgUid);
+		
+		int aftcnt = pstmt.executeUpdate();
+		
+		pstmt.close();
+		conn.close();
+		
+		return aftcnt;
+	}
+	//5. Delete 회원 삭제
+	private static int dltTMem(String orgUid1) throws ClassNotFoundException, SQLException {
+		Class.forName(driver);
+		Connection conn = DriverManager.getConnection(url, dbuid, dbpwd);
+		
+		//tmem 에 있는 3개의 값을 추가
+		String sql = "DELETE FROM TMEM WHERE USERID = ?";
+		PreparedStatement pstmt = conn.prepareStatement(sql);
+		
+		pstmt.setString(1, orgUid1);
+		
+		int aftcnt = pstmt.executeUpdate();
+		
+		pstmt.close();
+		conn.close();
+		
+		return aftcnt;
+	}
+//-----------------------------------------------------------------------
+//	데이터 입력
+	// 추가 데이터 
 	private static TMemDTO inputData() {
 		System.out.println("아이디: ");
 		String userid = sc.nextLine();
@@ -182,6 +205,18 @@ public class TMemTest1 {
 		TMemDTO tmem = new TMemDTO(userid, username, email);		
 		return tmem;
 	}
+	// 수정할 데이터
+	private static TMemDTO Updatedata() {
+		System.out.println("이름: ");
+		String username = sc.nextLine();
+		System.out.println("이메일: ");
+		String email = sc.nextLine();
+		
+		TMemDTO tmem = new TMemDTO(username, email);	
+		return tmem;
+	}
+//-----------------------------------------------------------------------
+//	Display()
 	private static void display(TMemDTO tmem) {
 		if (tmem == null) {
 			System.out.println("조회된 자료가 없습니다");
@@ -207,11 +242,5 @@ public class TMemTest1 {
 		}
 		System.out.println("Press any key ....");
 		sc.nextLine();
-	}
-	private static void displayudp(TMemDTO tmem2) {
-		String fmt = "%s %s %s";
-		String msg = String.format(fmt, tmem.getUserid(), tmem.getUsername(), tmem.getEmail());
-		System.out.println("업데이트 되었습니다.");
-		System.out.println(msg);
 	}
 }
